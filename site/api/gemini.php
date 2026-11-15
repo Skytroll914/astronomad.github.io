@@ -40,7 +40,7 @@ if (!$contents || end($contents)['role'] !== 'user') fail(400, 'Last message mus
 $payload = json_encode([
   'systemInstruction' => ['parts' => [['text' => $system]]],
   'contents' => $contents,
-  'generationConfig' => ['responseMimeType' => 'application/json', 'maxOutputTokens' => 1024]
+  'generationConfig' => array_merge(['maxOutputTokens' => max(256, min((int)($in['maxTokens'] ?? 1024), 8192))], empty($in['json']) ? [] : ['responseMimeType' => 'application/json'])
 ]);
 
 // --- call Gemini, trying each model in turn (model names change over time) ---

@@ -1,0 +1,14 @@
+# Notes and screenshots from the build sessions (not part of the project)
+chaterror.png
+DocumentationGuideline.jpeg
+MarkingRubric.jpeg
+feature_requirements_and_updates.md
+DEPLOY.md
+.claude/
+
+# Secrets: never commit an API key
+gemini-config.php
+.env
+
+# Python cache
+__pycache__/

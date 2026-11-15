@@ -1,0 +1,97 @@
+/* ================= v4: filled alert boxes, chat fix, live vitals, daily check-in, supervisor dashboard ================= */
+/* Alert boxes: normal = green outline only; warning = solid yellow fill; critical = solid red fill.
+   Icons get a white backing on filled boxes so the shape stays visible; the word is always there too. */
+:root{--warn-fill:#f2b705; --warn-ink:#1a1300; --crit-fill:#c62828; --crit-ink:#fff}
+.status.normal,.group.lvl-normal,.tile.lvl-normal,.ptile.lvl-normal,.mate.lvl-normal,.need.lvl-normal,.person.lvl-normal,.sim.lvl-normal,.sub-b.lvl-normal,.dial.lvl-normal{background:transparent;border:2px solid var(--ok);box-shadow:none}
+.status.warning,.group.lvl-warning,.tile.lvl-warning,.ptile.lvl-warning,.mate.lvl-warning,.need.lvl-warning,.person.lvl-warning,.sim.lvl-warning,.sub-b.lvl-warning,.dial.lvl-warning{background:var(--warn-fill);border:2px solid var(--warn-fill);color:var(--warn-ink);box-shadow:none}
+.status.critical,.group.lvl-critical,.tile.lvl-critical,.ptile.lvl-critical,.mate.lvl-critical,.need.lvl-critical,.person.lvl-critical,.sim.lvl-critical,.sub-b.lvl-critical,.dial.lvl-critical,.banner-crit,.crit-card{background:var(--crit-fill);border:2px solid var(--crit-fill);color:var(--crit-ink);box-shadow:none}
+:is(.status,.group,.tile,.ptile,.mate,.need,.person,.sim,.sub-b,.dial):is(.warning,.critical,.lvl-warning,.lvl-critical) :is(.small,.eyebrow,.gsum,.sub,.lab,.nm,h2,h3,strong,p,li,span,.u,.vconf,.soft,a),
+:is(.banner-crit,.crit-card) :is(.small,.eyebrow,h3,strong,p,span,div){color:inherit}
+:is(.status,.group,.tile,.ptile,.mate,.need,.person,.sim,.sub-b):is(.warning,.critical,.lvl-warning,.lvl-critical) .small{opacity:.88}
+:is(.status,.group,.ptile,.mate,.need,.person,.sim,.sub-b):is(.warning,.critical,.lvl-warning,.lvl-critical) svg:not(.vspark),:is(.banner-crit,.crit-card)>svg{background:#fff;border-radius:50%;padding:2px}
+:is(.status,.group,.tile,.ptile,.mate,.need,.person,.sim,.sub-b):is(.warning,.critical,.lvl-warning,.lvl-critical) .chip,
+:is(.status,.group,.tile,.ptile,.mate,.need,.person,.sim,.sub-b):is(.warning,.critical,.lvl-warning,.lvl-critical) .chip span{color:var(--ink)}
+.group.lvl-normal{border-left-width:2px}
+.mate.lvl-normal,.mate.lvl-warning,.mate.lvl-critical{border-top-width:2px}
+.mate.lvl-warning .nudge,.mate.lvl-critical .nudge{background:rgba(255,255,255,.2);border-left-color:currentColor}
+.crit-card .ackrow{border-top-color:rgba(255,255,255,.35)} .crit-card .btn{color:var(--ink)}
+.tile.lvl-unavailable{border:2px dashed var(--muted);background:transparent}
+
+/* live vitals */
+.vtiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.vtile{min-width:0;padding:5px 8px}
+.vtile strong{font-size:16px;white-space:nowrap} .vtile .u{font-size:11px;font-weight:600;opacity:.8}
+.vspark{display:block;width:100%;height:18px;margin-top:2px} .vspark polyline{fill:none;stroke:currentColor;stroke-width:1.5;opacity:.65;vector-effect:non-scaling-stroke}
+.livedot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ok);vertical-align:1px}
+.tile.lvl-warning .livedot,.tile.lvl-critical .livedot{background:currentColor}
+@media (prefers-reduced-motion:no-preference){.livedot{animation:blink 1.5s infinite}}
+.vconf{font-size:11px;font-weight:700;color:var(--muted)}
+
+/* chat: messages never shrink or overlap; the log scrolls inside a fixed-height panel */
+#rimau{height:min(760px,calc(100vh - 24px));max-height:none;overflow:hidden}
+.log{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scroll-behavior:smooth}
+.msg{flex:none;overflow-wrap:anywhere}
+.msg .txt p{margin:0 0 6px} .msg .txt p:last-child{margin:0}
+.msg .txt ul,.msg .txt ol{margin:4px 0;padding-left:18px}
+.msg.rimau .txt{white-space:normal}
+.msg .txt code{font-family:ui-monospace,Consolas,monospace;font-size:.9em;background:rgba(127,127,127,.18);padding:0 3px;border-radius:4px}
+.example{flex:none;border:1px dashed var(--axis);border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:6px}
+.example .msg{opacity:.85}
+.exlab{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.03em}
+.errline{color:var(--ink);background:var(--crit-bg);border:1px solid var(--crit);border-radius:8px;padding:5px 8px}
+.rimau-av{width:72px;height:72px}
+@media (max-width:1000px){#rimau{height:auto}.log{max-height:460px}}
+
+/* daily check-in: pulsing button and reminder */
+.wrap{padding-bottom:120px}
+#fab .fabwrap{position:fixed;right:22px;bottom:22px;display:flex;align-items:center;gap:12px;z-index:40}
+.fab{width:72px;height:72px;border-radius:50%;border:3px solid var(--accent);background:#fff;padding:0;position:relative;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+.fab img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+@media (prefers-reduced-motion:no-preference){.fab:not(.done){animation:fabpulse 3.6s ease-in-out infinite}}
+@keyframes fabpulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 55%,transparent),0 6px 18px rgba(0,0,0,.28)}50%{transform:scale(1.05);box-shadow:0 0 0 16px color-mix(in srgb,var(--accent) 0%,transparent),0 6px 18px rgba(0,0,0,.28)}}
+.fab.done{border-color:var(--ok)}
+.fabtick{position:absolute;right:-4px;bottom:-4px;background:var(--ok);color:#fff;border-radius:50%;width:24px;height:24px;display:grid;place-items:center;font-weight:700;font-size:14px}
+.fabnote{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px 10px;font-size:12.5px;font-weight:700;max-width:240px;box-shadow:0 4px 14px rgba(0,0,0,.15);line-height:1.35}
+.fabnote span{font-weight:400;color:var(--muted)}
+
+/* daily check-in: modal */
+body.modal-open{overflow:hidden}
+.assess{position:fixed;inset:0;z-index:50;background:rgba(5,10,20,.62);display:grid;place-items:center;padding:16px}
+.assess[hidden]{display:none}
+.amodal{background:var(--surface);border:1px solid var(--line);border-radius:22px;width:min(760px,100%);height:min(820px,calc(100vh - 32px));display:flex;flex-direction:column;gap:10px;padding:16px;overflow:hidden}
+.ahead{display:flex;gap:12px;align-items:center}
+.ahead .rimau-av{width:64px;height:64px}
+.aprog{display:flex;gap:4px;margin-top:6px;max-width:260px} .aprog i{flex:1;height:5px;border-radius:3px;background:var(--line)} .aprog i.on{background:var(--accent)}
+.alog{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:8px;padding:4px 2px;scroll-behavior:smooth}
+.msg.q .txt{font-weight:700}
+.msg.invalid{background:var(--crit-bg);border:2px solid var(--crit)}
+.ain{display:flex;gap:8px;align-items:flex-end} .ain textarea{flex:1;min-height:52px;resize:vertical}
+.astart,.areport{flex:1 1 auto;min-height:0;overflow-y:auto;display:grid;gap:10px;align-content:start}
+.qa{border-top:1px solid var(--line);padding:6px 0}
+
+/* ground: the three questions */
+.qhead{display:flex;gap:10px;align-items:center}
+.qnum{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;font-weight:700;font-family:var(--display);flex:none;border:1px solid var(--axis)}
+.q1 .prio{grid-template-columns:repeat(2,minmax(0,1fr))}
+.needs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+.need{text-align:left;border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.need-h{display:flex;gap:8px;align-items:center} .need-h>span:nth-child(2){flex:1}
+.need ul{margin:0;padding:0;list-style:none;display:grid;gap:3px;font-size:13.5px} .need li{display:flex;gap:6px;align-items:flex-start}
+.need[aria-pressed="true"]{outline:3px solid var(--accent);outline-offset:2px}
+.ri{width:16px;height:16px;flex:none;margin-top:2px;vertical-align:-3px}
+.sims{display:grid;gap:8px;margin-top:8px}
+.sim{display:flex;gap:12px;border-radius:12px;padding:10px 12px;align-items:flex-start}
+.sim-who{display:flex;padding-right:6px} .sim-who .av{width:30px;height:30px;font-size:14px;margin-right:-6px;border:2px solid var(--surface)}
+.chg{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:5px;font-size:14px} .chg li{display:flex;gap:8px;align-items:flex-start}
+.arrow{font-size:12px;margin-top:3px;flex:none} .arrow.good{color:var(--ok)} .arrow.bad{color:var(--crit)}
+.subs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:6px}
+.sub-b{border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:3px}
+.ckbars{display:flex;align-items:flex-end;gap:4px;height:90px;border-bottom:1px solid var(--axis);padding-bottom:2px;max-width:420px}
+.ckbars .b{flex:1;border-radius:4px 4px 0 0;background:var(--ok)} .ckbars .b.lvl-warning{background:var(--warn)} .ckbars .b.lvl-critical{background:var(--crit)} .ckbars .b.none{height:4px;background:var(--line)}
+@media (max-width:1000px){.needs{grid-template-columns:repeat(2,minmax(0,1fr))}.subs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.needs,.subs,.vtiles{grid-template-columns:minmax(0,1fr)}.fabnote{display:none}}
+/* a filled tile inside a filled group of the same colour keeps a visible edge */
+.group.lvl-warning .tile.lvl-warning{border-color:var(--warn-ink)} .group.lvl-critical .tile.lvl-critical{border-color:#fff}
+/* keep the chat panel clear of the floating check-in button; let long vital values wrap */
+#rimau{height:min(760px,calc(100vh - 130px))}
+.vtile strong{white-space:normal;font-size:15px;line-height:1.25} .vtile strong .u{white-space:nowrap}

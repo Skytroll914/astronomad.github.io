@@ -1,4 +1,10 @@
-# Only the proxy is reachable in this folder; block any config file placed here.
+# The site calls api/gemini; on PHP hosting that is served by gemini.php.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^gemini$ gemini.php [L]
+</IfModule>
+
+# Block any config file placed in this folder.
 <Files "config.php">
   Require all denied
 </Files>
