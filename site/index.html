@@ -11,6 +11,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/v3.css">
+<link rel="stylesheet" href="css/v4.css">
+<link rel="stylesheet" href="css/v5.css">
 </head>
 <body>
 <div class="wrap">
@@ -24,7 +26,7 @@
     <div style="flex:1"><h1>Astronaut Health Monitoring System</h1><p class="sub">Behavioural health, sleep, cabin safety and crew support. Hackathon demo.</p></div>
     <div class="session"><span id="who-am-i" class="small"></span><button class="btn" data-act="logout">Switch role / Log out</button></div>
   </div>
-  <div class="simbar" role="note"><span>DEMO</span><span>Crew, cabin and radiation data: simulated</span><span>Alert delivery: simulated</span><span>CCTV: mock</span><span>Rimau: Gemini or scripted</span></div>
+  <div class="simbar" role="note"><span>DEMO</span><span>Crew, cabin and radiation data: simulated</span><span>Alert delivery: simulated</span><span>CCTV: mock</span><span>Vitals: simulated live feed</span><span>AI: onboard model (Gemini in this demo)</span></div>
   <nav class="tabs" id="tabs" aria-label="Views"></nav>
 </header>
 
@@ -38,8 +40,7 @@
     </div>
     <div class="ctl"><span class="lab" id="proflab">Mission</span><div class="btnrow" role="group" aria-labelledby="proflab" id="prof"></div></div>
     <div class="ctl" id="whoctl"><span class="lab" id="wholab">Astronaut</span><div class="btnrow" role="group" aria-labelledby="wholab" id="who"></div></div>
-    <div class="ctl"><span class="lab" id="rmodelab">Rimau replies</span><div class="btnrow" role="group" aria-labelledby="rmodelab" id="rmode"></div></div>
-    <div class="ctl"><span class="lab">Stored demo entries</span><button class="btn sm" data-act="reset">Clear reports, alerts, chats and remote</button></div>
+    <div class="ctl"><span class="lab">Stored demo entries</span><button class="btn sm" data-act="reset">Clear reports, alerts, chats, check-ins and remote</button></div>
   </div>
 </details>
 
@@ -49,6 +50,10 @@
 <div class="view" id="v-about"><div id="aboutview" class="stack"></div></div>
 </div>
 
+<div id="fab"></div>
+<div id="assess" class="assess" hidden></div>
+<div id="pop" class="pop" hidden></div>
+
 <footer>Hackathon prototype built on simulated data for the NASA Space Apps Challenge. Not a medical device, and not a NASA product or endorsed by NASA.</footer>
 </div>
 
@@ -56,7 +61,11 @@
 <script src="js/rules.js"></script>
 <script src="js/extras.js"></script>
 <script src="js/additions.js"></script>
+<script src="js/vitals.js"></script>
+<script src="js/ai.js"></script>
 <script src="js/rimau.js"></script>
+<script src="js/assessment.js"></script>
+<script src="js/supervisor.js"></script>
 <script src="js/ui.js"></script>
 </body>
 </html>

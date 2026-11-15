@@ -222,8 +222,8 @@ function investigate(p, day, symptoms){
 }
 
 /* ================= Entries made in the demo (browser storage) ================= */
-const KEY='ahm-demo-v3';
-const EMPTY=()=>({alerts:[],reports:[],checkins:[],followups:[],rtchecks:[],remote:{},chats:{},shares:[]});
+const KEY='ahm-demo-v4';
+const EMPTY=()=>({alerts:[],reports:[],checkins:[],followups:[],rtchecks:[],remote:{},chats:{},shares:[],assessments:[],adrafts:{}});
 let store=EMPTY();
 function load(){ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s&&Array.isArray(s.alerts)) store={...EMPTY(),...s}; }catch(e){} }
 function save(){ try{ localStorage.setItem(KEY,JSON.stringify(store)); }catch(e){} }

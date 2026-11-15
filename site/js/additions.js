@@ -62,6 +62,7 @@ readings = function(p, day){
   rows.push({id:'radiation', name:'Cabin radiation', group:'Cabin', label:'Simulated', source:'Radiation monitor', value:rad.rate.toFixed(1)+' µSv/h', raw:rad.rate,
     level:radLevel(rad.rate), rule:`${T.radiation.lines} Mission dose so far: ${missionDose(day).toFixed(1)} mSv.`, basis:'mixed',
     plain:rad.spe ? 'Cabin radiation is high because of a solar particle event' : 'Cabin radiation is raised'});
+  rows.push(...vitalRows(p, day));                 // SpO2, blood pressure, breathing, core temperature (vitals.js)
   return _rc3[key] = rows;
 };
 
@@ -76,9 +77,11 @@ timeline = function(o){
     else if(d === SPE.from + 1) ev.push({day:d, t:8, kind:'Cabin', source:'Radiation monitor', label:'Simulated', who:'Whole crew',
       what:`Dose rate easing: ${r.rate} µSv/h, still above the ${THRESHOLDS.radiation.warn} µSv/h warning line.`, expected:'no', next:'Keep time outside the shielded area short.'});
   }
-  if(o.viewer === 'surgeon' || o.viewer === 'self') (store.shares || []).filter(s => (!o.pid || s.pid === o.pid) && s.day >= from && s.day <= o.day).forEach(s => ev.push({
-    day:s.day, t:s.t, kind:'Wellbeing', source:'Rimau (shared with consent)', label:'AI summary', who:PEOPLE.find(p => p.id === s.pid).name,
-    what:`Rimau wellbeing summary (${s.concern} concern): ${s.summary}`, expected:'', next:'Flight surgeon: offer a private psychological conference.'}));
+  // Daily check-ins done in this demo: full detail for the astronaut and the flight surgeon, the band only for others
+  if(o.viewer !== 'crew') (store.assessments || []).filter(a => (!o.pid || a.pid === o.pid) && a.day >= from && a.day <= o.day && a.report).forEach(a => ev.push({
+    day:a.day, t:a.t, kind:'Check-in', source:'Daily check-in with Rimau', label:a.demo ? 'Demo (scripted)' : 'AI-estimated', who:PEOPLE.find(p => p.id === a.pid).name,
+    what:o.viewer === 'director' ? `Daily check-in completed. Overall: ${BAND_WORD[a.report.overall.band]}.` : `Daily check-in: ${BAND_WORD[a.report.overall.band]}. ${a.report.overall.summary_for_surgeon || ''}`,
+    expected:'', next:a.report.overall.band === 'red' ? 'Flight surgeon: offer a confidential tele-psychology consultation.' : a.report.overall.band === 'yellow' ? 'Low-friction countermeasures: workload, family call, self-guided tools.' : ''}));
   return ev.sort((a, b) => b.day - a.day || b.t - a.t);
 };
 

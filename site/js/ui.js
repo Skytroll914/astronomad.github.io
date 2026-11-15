@@ -70,10 +70,6 @@ function spark(series){
 }
 
 /* ---------- live values: heart rate and radiation tick like a real feed ---------- */
-function hrNow(p, day){
-  const act = activityAt(p.id, day, nowHour()), add = {aerobic:52, resistive:38, eva:34, drill:40, evaprep:12, maintenance:10, cargo:12, sleep:-4}[act] || 6;
-  return Math.round(val(p, 'rhr', day) !== null ? val(p, 'rhr', day) + add : p.base.rhr.mean + add);
-}
 const live = (kind, base, dp, unit) => `<span class="livev" data-live="${kind}" data-base="${base}" data-dp="${dp}">${(+base).toFixed(dp)}</span>${unit ? ' '+unit : ''}`;
 setInterval(() => {
   const t = Date.now()/1000;
@@ -107,7 +103,7 @@ function renderLogin(){
 
 /* ================= Personal tab ================= */
 const GROUPS = [
-  {id:'vitals', name:'Vitals', ids:['rhr','hrv'], key:['rhr','hrv']},
+  {id:'vitals', name:'Vitals', ids:['rhr','hrv','spo2','bp','rr','coretemp','hydration'], key:[]},
   {id:'mind',   name:'Mental state', ids:['mood','stress','irritability','rt','wm'], key:['mood','stress','rt']},
   {id:'social', name:'Social and voice', ids:['crew','speech','pitch','pauses'], key:['crew','speech']},
   {id:'sleep',  name:'Sleep and schedule', ids:['sleeph','sleepe','clock','workload'], key:['sleeph','clock','workload']},
@@ -119,11 +115,11 @@ function groupCard(g, p, st){
   const short = r => r.id === 'sleeph' ? r.value.replace(' last night', '') : r.value;
   const tile = r => `<div class="tile lvl-${r.level}"><span class="small">${r.name.replace('Cabin radiation', 'Radiation').replace('Cabin ', '').replace('Sleep station temperature', 'Sleep station')}</span><strong>${r.id === 'radiation' ? live('rad', r.raw, 1, 'µSv/h') : short(r)}</strong></div>`;
   const keys = g.key.map(id => rows.find(r => r.id === id)).filter(Boolean);
-  const hr = g.id === 'vitals' ? `<div class="tile lvl-normal"><span class="small">${ICON.heart.replace('<svg', '<svg style="width:12px;height:12px;vertical-align:-1px"')} Heart rate now</span><strong>${live('hr', hrNow(p, state.day), 0, 'bpm')}</strong></div>` : '';
+  const hr = g.id === 'vitals' ? VITALS.map(v => vitalTile(p, v.id)).join('') : '';
   return `<section class="group lvl-${lvl}" aria-label="${g.name}">
     <header>${ICON[lvl]}<h3>${g.name}</h3><span class="small">${WORD[lvl]}</span></header>
     <p class="gsum">${off.length ? off.slice(0, 2).map(r => esc(r.plain || r.name)).join('. ') + '.' : rows.length > scored.length ? 'In range. One reading is unavailable.' : 'All in your usual range.'}</p>
-    <div class="tiles">${hr}${keys.map(tile).join('')}</div>
+    <div class="tiles${g.id === 'vitals' ? ' vtiles' : ''}">${hr}${keys.map(tile).join('')}</div>
     ${state.details ? `<div class="tl" style="margin-top:8px">${rows.map(r => `<div class="ev"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><span><strong>${r.name}</strong> · ${r.id === 'radiation' ? live('rad', r.raw, 1, 'µSv/h') : r.value}<br><span class="small">${r.source} · ${r.label}</span></span>${chip(r.level)}</div>
         ${r.trend ? `<div style="margin-top:4px">${spark(r.trend.series)}</div>` : ''}<p class="small" style="margin-top:4px">${esc(r.rule)}</p></div>`).join('')}</div>` : ''}
   </section>`;
@@ -355,13 +351,13 @@ function renderTeam(){
   const pos = crewPositions(state.day, h), meal = h < 13 ? '13:00' : h < 19.5 ? '19:30' : 'tomorrow 07:00';
   const ci = id => store.checkins.find(c => c.pid === id && c.day === state.day);
   const cards = PEOPLE.map((q, i) => { const st = personStatus(q, state.day), lvl = st.level, s = SOFT[lvl], here = pos.find(o => o.p.id === q.id), c = ci(q.id), self = q.id === me;
-    return `<article class="mate lvl-${s[1]}"><div class="mate-h"><span class="av av-${q.id}">${q.name[0]}</span><div><strong>${q.name}</strong>${self ? ' <span class="tag">You</span>' : ''}<br><span class="small">${q.role}</span></div></div>
+    return `<article class="mate lvl-${s[1]}" role="button" tabindex="0" data-act="mateopen" data-pid="${q.id}" aria-label="${q.name}: ${s[0]}. Open their metrics"><div class="mate-h"><span class="av av-${q.id}">${q.name[0]}</span><div><strong>${q.name}</strong>${self ? ' <span class="tag">You</span>' : ''}<br><span class="small">${q.role}</span></div></div>
       <p class="soft">${ICON[lvl]} ${s[0]}</p>
       <p class="small">Now: ${ACTIVITIES[here.act] ? ACTIVITIES[here.act].name.toLowerCase() : 'sheltering'} · ${here.zone.toLowerCase()}</p>
       ${c ? `<p class="small">Checked in today: <strong>${esc(c.answer)}</strong></p>` : ''}
-      ${!self && lvl !== 'normal' ? `<p class="nudge">Check in on ${q.name}. ${TIPS[(i + state.day) % TIPS.length]}</p>` : ''}</article>`; }).join('');
+      ${!self && lvl !== 'normal' ? `<p class="nudge">Check in on ${q.name}. ${TIPS[(i + state.day) % TIPS.length]}</p>` : ''}<span class="mate-more">View metrics ›</span></article>`; }).join('');
   const nextOff = 7 - (state.day % 7 || 7);
-  $('teamview').innerHTML = `<div><h2>Your crew today</h2><p class="sub">An overview to look out for each other. Only each person's overall status is shared; their readings and reports stay private.</p></div>
+  $('teamview').innerHTML = `<div><h2>Your crew today</h2><p class="sub">An overview to look out for each other. Tap a crewmate to see their physical metrics. Mental-health readings, check-ins and reports stay private.</p></div>
     ${colorKey()}
     ${radiation(state.day).rate >= THRESHOLDS.radiation.crit ? `<section class="banner-crit" role="alert">${ICON.critical}<div><strong>Solar particle event.</strong> Whole crew to the shielded shelter. Cabin dose rate ${live('rad', radiation(state.day).rate, 0, 'µSv/h')}.</div></section>` : ''}
     ${profileNote()}${alertsPanel('crew', true)}
@@ -373,24 +369,39 @@ function renderTeam(){
     <div class="grid2">${cctv()}<div style="display:flex;flex-direction:column;gap:16px">${cabinStrip()}${upcoming(false)}</div></div>`;
 }
 
+/* ---------- crewmate pop-up: physical metrics only; mental-health details stay private ---------- */
+const POP = {pid:null};
+function renderPop(){
+  const box = $('pop'); if(!box) return;
+  if(!POP.pid){ box.hidden = true; box.innerHTML = ''; return; }
+  const q = PEOPLE.find(p => p.id === POP.pid), me = state.session && state.session.mode === 'astronaut' ? state.session.pid : state.person, self = q.id === me;
+  const st = personStatus(q, state.day), s = SOFT[st.level], here = crewPositions(state.day, nowHour()).find(o => o.p.id === q.id);
+  const rows = readings(q, state.day), get = id => rows.find(r => r.id === id), sl = get('sleeph'), clk = get('clock');
+  const sleepLvl = worstOf([sl, clk].filter(Boolean).map(r => r.level === 'unavailable' ? 'normal' : r.level));
+  const cabLvl = worstOf(rows.filter(r => ['radiation','co2','temp','humidity','stationtemp'].includes(r.id)).map(r => r.level));
+  box.hidden = false;
+  box.innerHTML = `<div class="popcard" role="dialog" aria-modal="true" aria-labelledby="pop-title">
+    <div class="pop-h"><span class="av av-${q.id}">${q.name[0]}</span><div style="flex:1"><h2 id="pop-title">${q.name}${self ? ' <span class="tag">You</span>' : ''}</h2><p class="small">${q.role} · mission day ${state.day}</p></div>
+      <button class="btn round" data-act="popclose" aria-label="Close">✕</button></div>
+    <div class="status ${st.level}" style="padding:10px 12px">${ICON[st.level]}<div><div class="eyebrow">OVERALL</div><strong style="font-size:18px">${s[0]}</strong>
+      <p class="small">Now: ${ACTIVITIES[here.act] ? ACTIVITIES[here.act].name.toLowerCase() : 'sheltering'} · ${here.zone.toLowerCase()}</p></div></div>
+    <h3>Vitals <span class="small">live</span></h3>
+    <div class="tiles vtiles">${VITALS.map(v => vitalTile(q, v.id)).join('')}</div>
+    <div class="poprows">
+      <div class="poprow lvl-${sleepLvl}">${ICON[sleepLvl]}<span><strong>Sleep</strong><br><span class="small">${sl ? sl.value : 'No reading'}${clk ? ' · body clock '+clk.value.toLowerCase() : ''}</span></span></div>
+      <div class="poprow lvl-${cabLvl}">${ICON[cabLvl]}<span><strong>Cabin safety</strong><br><span class="small">${WORD[cabLvl]}: radiation, air and temperature</span></span></div>
+    </div>
+    <p class="small privacy">${ICON.unavailable.replace('<svg', '<svg class="ri"')} Mental-health details are private to ${self ? 'you' : 'each crew member'} and the flight surgeon.</p>
+    ${self ? '<button class="btn primary" data-act="popmine">Open my Personal tab</button>' : `<p class="nudge">Looking out for ${q.name}? A quick "how are you doing?" or an invite to the next shared meal goes a long way.</p>`}
+  </div>`;
+  setTimeout(() => { const b = box.querySelector('[data-act=popclose]'); if(b && !box.contains(document.activeElement)) b.focus(); }, 30);
+}
+function popClose(){
+  const box = $('pop'); if(!box || box.hidden) return;
+  box.classList.add('closing'); setTimeout(() => { box.classList.remove('closing'); POP.pid = null; renderPop(); }, 180);
+}
+
 /* ================= Ground tab ================= */
-function sharesPanel(){
-  const list = (store.shares || []).filter(s => s.day <= state.day && s.day >= state.day - 7).slice().reverse();
-  if(!list.length) return '';
-  return `<section class="panel"><h2>Wellbeing summaries from Rimau</h2><p class="sub">Shared only with the astronaut's consent, for the flight surgeon.</p>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">${list.map(s => `<div class="box lvl-box-${s.concern === 'crisis' || s.concern === 'high' ? 'critical' : 'warning'}"><strong>${nameOf(s.pid)}</strong> · Day ${s.day}, ${s.time} · concern: ${s.concern}<br>${state.role === 'surgeon' ? esc(s.summary) : '<span class="small">Private wellbeing note on file. Switch to Flight surgeon to read it.</span>'}</div>`).join('')}</div></section>`;
-}
-function priorityStrip(){
-  const sts = PEOPLE.map(q => ({q, st:personStatus(q, state.day), al:activeAlert(q.id), sh:(store.shares || []).some(s => s.pid === q.id && s.day === state.day)}))
-    .sort((a, b) => (b.al ? 3 : 0) - (a.al ? 3 : 0) || RANK[b.st.level] - RANK[a.st.level]);
-  const rad = radiation(state.day), openAl = store.alerts.filter(a => !a.closed && !(a.ack.ground)).length, c = cabin(state.day);
-  const cab = [radLevel(rad.rate), c.co2 > THRESHOLDS.co2.crit ? 'critical' : c.co2 > THRESHOLDS.co2.warn ? 'warning' : 'normal', band(c.temp, THRESHOLDS.temp), band(c.humidity, THRESHOLDS.humidity)].reduce((a, l) => RANK[l] > RANK[a] ? l : a, 'normal');
-  return `<section class="prio">
-    <div class="ptile lvl-${openAl ? 'critical' : 'normal'}"><span class="small">Open alerts</span><strong>${openAl}</strong><span class="small">${openAl ? 'Waiting for ground' : 'All handled'}</span></div>
-    <div class="ptile lvl-${cab}"><span class="small">Cabin safety</span><strong>${WORD[cab]}</strong><span class="small">Radiation ${live('rad', rad.rate, 1, 'µSv/h')} · CO₂ ${c.co2.toFixed(1)} mmHg</span></div>
-    ${sts.map(({q, st, al, sh}) => `<button class="ptile person-t lvl-${al ? 'critical' : st.level}" data-person="${q.id}" aria-pressed="${q.id === state.person}"><span class="small">${q.role}</span><strong>${q.name}</strong><span>${chip(st.level)}</span><span class="small">${al ? 'Alert open' : sh ? 'Wellbeing note' : st.early.length ? 'Early sign' : st.drivers[0] ? esc(st.drivers[0].name) : 'All in range'}</span></button>`).join('')}
-  </section>`;
-}
 function pairPanel(){
   if(state.role !== 'surgeon') return `<div><h3>Crew contact</h3><p class="small" style="margin-top:4px">Pair-by-pair contact is visible to the flight surgeon only. ${pairFlags(state.day).length ? pairFlags(state.day).length+' pair flagged.' : 'No pairs flagged.'}</p></div>`;
   const ids = PEOPLE.map(p => p.id), flags = pairFlags(state.day);
@@ -408,12 +419,14 @@ function renderGround(){
       return `<div class="box"><strong>${full ? r.symptoms.map(s => SYMPTOMS[s]).join(', ') : 'Private report on file'}</strong> · ${r.time}<br>${full ? (sees === 'surgeon' && r.detail ? 'Note: "'+esc(r.detail)+'"<br>' : '')+'Suggested check: '+investigate(p, r.day, r.symptoms).next : 'Details are visible to the flight surgeon only. Switch role above to see how that view differs.'}</div>`; }).join('')
     : '<p class="small">None reported today.</p>';
   const inv = investigate(p, state.day, ['sleep']), rad = radiation(state.day);
-  $('groundview').innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:10px 20px;align-items:end;justify-content:space-between"><div><h2>Ground team: crew supervision</h2><p class="sub">Critical items first. Click a crew member for detail and the rule behind every status.</p></div>
+  $('groundview').innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:10px 20px;align-items:end;justify-content:space-between"><div><h2>Ground team: crew supervision</h2><p class="sub">Three questions first: who needs attention, what the crew has in common, and what changed. Click a person for detail.</p></div>
       <div class="ctl"><span class="lab" id="rolelab">Viewing as</span><div class="btnrow" role="group" aria-labelledby="rolelab">${[['director','Flight director'],['surgeon','Flight surgeon']].map(([k, v]) => `<button class="btn" data-role="${k}" aria-pressed="${state.role === k}">${v}</button>`).join('')}</div></div></div>
     ${colorKey()}
     ${rad.rate >= THRESHOLDS.radiation.crit ? `<section class="banner-crit" role="alert">${ICON.critical}<div><strong>Solar particle event in progress.</strong> Cabin dose rate ${live('rad', rad.rate, 0, 'µSv/h')}, above the ${THRESHOLDS.radiation.crit} µSv/h line. Confirm the crew is sheltering and track the event.</div></section>` : ''}
-    ${priorityStrip()}
-    ${profileNote()}${alertsPanel('ground')}${sharesPanel()}
+    ${attentionPanel()}
+    ${similarPanel()}
+    ${changesPanel()}
+    ${profileNote()}${alertsPanel('ground')}${checkinTable()}
     <div class="grid2">${cctv()}${cabinStrip()}</div>
     ${upcoming(true)}
     <section class="monitor">
@@ -422,6 +435,7 @@ function renderGround(){
           <span class="badges">${s.early.length ? `<span class="tag">Early sign</span>` : ''}${s.unavailable.length ? `<span class="tag">${s.unavailable.length} unavailable</span>` : ''}${rep ? '<span class="tag">Reported concern</span>' : ''}${al ? '<span class="tag tag-crit">Alert open</span>' : ''}</span></button>`; }).join('')}</div>
       <div class="panel detail">
         <div style="display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center"><h2>${p.name}</h2><span class="small">${p.role} · day ${state.day}</span>${chip(st.level)}</div>
+        ${checkinDetail(p)}
         <div><h3>What set this status</h3>${st.level === 'normal' ? '<p>Every scored reading is inside its Normal range.</p>' : `<ul style="margin:4px 0 0;padding-left:18px">${st.drivers.map(d => `<li><strong>${d.name}:</strong> ${esc(d.rule)} ${basisTag(d.basis)}</li>`).join('')}</ul>`}</div>
         <div><h3>Early signs</h3><p class="sub" style="margin-bottom:4px">Two or more readings in one area sliding together for about 3 weeks, still in range. Not a status.</p>${st.early.length ? `<ul style="margin:0;padding-left:18px">${st.early.map(r => `<li><strong>${r.name}</strong>: sliding ${Math.abs(r.trend.slope).toFixed(2)} SD a day, 7-day average ${Math.abs(r.trend.now).toFixed(1)} SD ${r.trend.now < 0 ? 'worse' : 'better'} than normal.</li>`).join('')}</ul>` : '<p class="small">None.</p>'}</div>
         <div><h3>Reported concerns</h3><p class="sub" style="margin-bottom:6px">Shown separately from readings, including when every reading is Normal.</p>${concern}</div>
@@ -445,8 +459,8 @@ function renderAbout(){
     <ol class="steps" style="margin-top:8px">
       ${step(1, 'Role-based sign-in.', 'Log out, then sign in as Astronaut (pick a crew member) or Ground Team. Each role sees only its own tabs.', 'personal|20|amara')}
       ${step(2, 'Personal tab at a glance.', 'One status, then readings grouped into Vitals, Mental state, Social, Sleep and Cabin. Press Show details for the rules and raw data.', 'personal|80|kenji')}
-      ${step(3, 'Talk to Rimau.', 'Tap "I\'ve been feeling kind of down." then "I miss my family a lot lately." Rimau uses the sleep and event data, suggests NASA-sourced support, and asks before sharing anything with the flight surgeon.', 'personal|26|tomas')}
-      ${step(4, 'Consent reaches the ground.', 'After you agree to share, open Ground team, switch to Flight surgeon, and read the Rimau summary.', 'ground|26|tomas')}
+      ${step(3, 'Ask Rimau anything.', 'Rimau is the onboard assistant: try "Summarise my day" or any general question. Press See an example for a 3-turn sample.', 'personal|26|tomas')}
+      ${step(4, 'The daily check-in.', 'Press the pulsing Rimau button at the bottom right. Four open questions from the protocol; each answer gets a short supportive note, off-topic answers are rejected, and a report is written at the end. Then open Ground team as Flight surgeon to read it.', 'personal|80|kenji')}
       ${step(5, 'Solar particle event.', 'Cabin radiation jumps to 185 µSv/h. Every screen turns red, the CCTV shows the crew in the shelter, and the next action changes.', 'team|64|amara')}
       ${step(6, 'Cabin remote and sleep report.', 'Set the sleep station to 27 °C, then press Sleep through to tomorrow. The new sleep report links the awakenings to the warm cabin.', 'personal|20|amara')}
       ${step(7, 'Team tab.', 'Crewmates see each other\'s overall status only, with nudges to check in, plus the CCTV and shared plans.', 'team|85|sofia')}
@@ -460,16 +474,15 @@ function renderAbout(){
       ${step(12, 'Crew tension.', 'Switch the Ground team view to Flight surgeon to see the pair contact table.', 'ground|100|erik')}
       ${step(13, 'Mars transit delay.', 'Switch the mission to Mars transit in the demo controls, raise an alert, and acknowledge it from the Ground team view.', 'personal|26|tomas')}
     </ol></section>
-  <section class="panel"><h2>Rimau, the wellbeing companion</h2><div class="sub" style="display:grid;gap:8px">
-    <p><strong>What it does.</strong> A friendly chat, not a questionnaire. Rimau reads the astronaut's simulated readings, last night's sleep disturbances, workload, upcoming tasks and 7-day event log, and looks for signs of stress, anxiety, loneliness, low mood and fatigue.</p>
-    <p><strong>Grounded advice.</strong> Rimau can only suggest items from a fixed list, and each one links to its source: private family calls and private psychological conferences (${link('bhp')}; ${link('psych')}), the Virtual Space Station self-guided tools (${link('vss')}), pre-sleep lighting (${link('fms')}), and the radiation shelter (${link('radbrief')}).</p>
-    <p><strong>Consent first.</strong> When Rimau sees a moderate or high concern it asks whether to share a short summary with the flight surgeon. Nothing leaves the chat without a yes. If someone mentions feeling unsafe, Rimau points straight to Alert crew &amp; ground.</p>
-    <p><strong>Live or scripted.</strong> Live replies come from Google Gemini through a small server script, so the API key never reaches the browser. If the call fails, or Scripted mode is chosen in the demo controls, a local script answers instead, so the demo never stalls.</p></div></section>
+  <section class="panel"><h2>Rimau: onboard assistant and daily check-in</h2><div class="sub" style="display:grid;gap:8px">
+    <p><strong>Two roles, one onboard model.</strong> In the chat panel Rimau is a general assistant: it answers anything simply and can summarise the astronaut's day from the dashboard. It does not assess mental health there; if someone sounds distressed it points to the daily check-in, and crisis language brings up Alert crew &amp; ground. The design assumes the model runs on the spacecraft, so it works through blackouts and light-time delay. In this demo it is Google Gemini, reached through a small local server.</p>
+    <p><strong>The daily check-in</strong> follows the crew behavioural health protocol: 16 items adapted from PSS-4 (stress), PHQ-9 (mood), GAD-7 (anxiety) and isolated-confined-extreme crew items, rewritten as open questions framed around operational readiness to counter "right stuff" under-reporting. Four a day, one per subscale, so all 16 are covered every 4 days. Each answer is checked for scope (off-task or abusive answers get "Invalid answer, please try again."; crisis language is never rejected), then gets a short supportive note that takes the live vitals into account.</p>
+    <p><strong>The report</strong> estimates each subscale from the open answers, applies the protocol's triage bands, red-flag items (5, 6, 13) and the personal-baseline delta, and runs a trigger-and-verify check against the vitals, which can support or contradict what was said but never diagnose. It is labelled AI-estimated, not a validated score. The flight surgeon sees all of it, the flight director the overall colour only, and the astronaut a supportive summary with NASA-sourced countermeasures (${link('bhp')}; ${link('psych')}; ${link('vss')}).</p></div></section>
   <section class="panel"><h2>Where the data comes from</h2><p class="sub">Inputs are kept apart and labelled. Nothing in the demo describes a real astronaut or a real shift.</p>
     <div class="tablewrap" style="margin-top:8px"><table><thead><tr><th>Label</th><th>What carries it</th><th>Note</th></tr></thead><tbody>
       <tr><td><strong>Simulated</strong></td><td>All six crew members, their test, wearable, proximity and voice readings, the mission schedule, duty hours, cabin readings, radiation, alarms and schedule changes</td><td>Generated by code in this page. Sleep hours are tuned to match published ISS averages; background radiation sits inside the published ISS range.</td></tr>
-      <tr><td><strong>Self-reported</strong></td><td>Reports, check-ins, follow-up requests, chats with Rimau and cabin remote settings you enter</td><td>Stored in this browser only. Rimau chats are sent to Gemini only in Live mode.</td></tr>
-      <tr><td><strong>AI summary</strong></td><td>Wellbeing summaries from Rimau</td><td>Written by Gemini (or the scripted engine) and shared only with consent.</td></tr>
+      <tr><td><strong>Self-reported</strong></td><td>Reports, check-ins, follow-up requests, chats with Rimau, daily check-in answers and cabin remote settings you enter</td><td>Stored in this browser only. Chats and check-in answers are sent to the AI endpoint to get a reply.</td></tr>
+      <tr><td><strong>AI-estimated</strong></td><td>Daily check-in notes and reports</td><td>Written by the onboard AI (Gemini in this demo) from the astronaut's own words and vitals. Past check-ins for the rest of the crew are simulated and labelled.</td></tr>
       <tr><td><strong>Estimated</strong></td><td>Body clock vs schedule</td><td>Worked out from the sleep schedule with a simple demo model. It is not a measurement of circadian phase.</td></tr>
       <tr><td><strong>Mock</strong></td><td>Cabin CCTV</td><td>A drawn cabin layout. Crew positions come from the simulated schedule. No video exists.</td></tr>
       <tr><td><strong>Not loaded</strong></td><td>Historical ISS cabin temperature, humidity and CO₂ telemetry</td><td>${link('eda')} holds this data. It could not be downloaded into this build, so cabin readings are simulated inside the published ranges.</td></tr>
@@ -483,7 +496,9 @@ function renderAbout(){
     <p><strong>In:</strong> behavioural health, sleep disturbance, workload, circadian timing, crew support, cabin environment and cabin radiation.</p>
     <p><strong>Out:</strong> blood and urine testing, bone and immune markers, and personal radiation dosimetry. Cabin radiation is tracked as a safety measure, not a personal dose record.</p>
     <p><strong>Vital signs:</strong> blood pressure, blood sugar and body temperature are not simulated. Each would enter as one more reading against the person's own normal, with its own row in the threshold table, so the screens need no change.</p>
-    <p><strong>Data streams:</strong> the design assumes continuous real-time telemetry and biometrics. In this demo they are simulated by scripts, and the live-looking values (heart rate now, radiation) wobble around the simulated daily value.</p>
+    <p><strong>Hydration:</strong> estimated as a share of each person's target. In microgravity, fluid shifts towards the head and dulls thirst, so crews tend to under-drink; exercise and spacewalks add sweat losses. Bands are demo rules.</p>
+    <p><strong>Demo check-in:</strong> the small button at the bottom left runs the same 4-question check-in with pre-written replies and a storyline-based report, so the experience can be shown without the AI. Its results are labelled Demo (scripted).</p>
+    <p><strong>Data streams:</strong> the design assumes continuous real-time telemetry and biometrics. In this demo they are simulated by scripts, and the live vitals (heart rate, HRV, SpO₂, blood pressure, breathing, core temperature) and radiation stream around each person's simulated daily value.</p>
     <p><strong>Sleep schedule:</strong> the planned sleep window of 21:30 to 06:00 follows ${link('esa')}.</p></div></section>
   <section class="panel"><h2>Sources</h2><ol style="margin:8px 0 0;padding-left:20px">${Object.values(SRC).map(s => `<li><a href="${s[1]}" target="_blank" rel="noopener">${esc(s[0])}</a></li>`).join('')}</ol></section>`;
 }
@@ -505,8 +520,14 @@ function render(){
   $('scenes').innerHTML = SCENES.map(([d, p, t]) => `<button class="btn sm" data-scene="${d}|${p}" aria-pressed="${state.day === d && state.person === p}">Day ${d} · ${t}</button>`).join('');
   $('who').innerHTML = PEOPLE.map(p => `<button class="btn sm" data-person="${p.id}" aria-pressed="${state.person === p.id}">${p.name}</button>`).join('');
   $('prof').innerHTML = Object.entries(PROFILES).map(([k, v]) => `<button class="btn sm" data-profile="${k}" aria-pressed="${state.profile === k}">${v.name}</button>`).join('');
-  $('rmode').innerHTML = [['live','Live AI (Gemini)'],['scripted','Scripted demo']].map(([k, v]) => `<button class="btn sm" data-rmode="${k}" aria-pressed="${RIMAU.mode === k}">${v}</button>`).join('');
   if(state.view === 'personal') renderPersonal(); if(state.view === 'team') renderTeam(); if(state.view === 'ground') renderGround(); if(state.view === 'about') renderAbout();
+  renderFab(); renderAssess(); renderPop();
+}
+function renderFab(){
+  const show = state.session && state.session.mode !== 'ground' && (state.view === 'personal' || state.view === 'team') && !ASSESS.open, done = show && doneToday(state.person, state.day);
+  $('fab').innerHTML = show ? `<div class="fabwrap">${done ? '' : `<span class="fabnote">Today's check-in · 4 min<br><span>A moment to unwind, and it helps your health team</span></span>`}
+    <button class="fab${done ? ' done' : ''}" data-act="aopen" aria-label="${done ? "Open today's check-in summary" : "Start today's daily check-in"}"><img src="assets/rimau-still.png" alt="" width="56" height="56">${done ? '<span class="fabtick" aria-hidden="true">✓</span>' : ''}</button></div>
+    <button class="demobtn" data-act="ademo" title="Scripted demo of the daily check-in, no AI needed">▶ Demo check-in</button>` : '';
 }
 function go(view, day, person){ state.view = view; if(day) state.day = +day; if(person) state.person = person; state.sheet = null; state.details = false; render(); window.scrollTo(0, 0); }
 function signIn(mode, pid){ state.session = {mode, pid:pid || null}; state.view = TABS[mode][0]; if(pid) state.person = pid; $('controls').open = mode === 'demo'; state.sheet = null; render(); window.scrollTo(0, 0); }
@@ -522,7 +543,7 @@ const ACTS = {
   logout(){ state.session = null; state.loginStep = null; state.sheet = null; state.details = false; },
   reset(){ store = EMPTY(); save(); clearCaches(); state.sheet = null; },
   openreport(){ state.view = 'personal'; state.sheet = 'report'; state.err = ''; state.draft = {symptoms:[], detail:'', share:'surgeon'}; window.scrollTo(0, 0); },
-  openalert(){ const last = store.reports.filter(r => r.pid === state.person && r.day === state.day).slice(-1)[0]; state.sheet = 'alert'; state.adraft = {include:false, symptoms:last ? last.symptoms.slice() : []}; window.scrollTo(0, 0); },
+  openalert(){ if(ASSESS.open){ ASSESS.open = false; renderAssess(); } state.view = 'personal'; const last = store.reports.filter(r => r.pid === state.person && r.day === state.day).slice(-1)[0]; state.sheet = 'alert'; state.adraft = {include:false, symptoms:last ? last.symptoms.slice() : []}; window.scrollTo(0, 0); },
   opentool(t){ state.sheet = 'tool'; state.tool = t.dataset.tool; window.scrollTo(0, 0); },
   openrt(){ state.sheet = 'rt'; state.rtResult = null; },
   cancel(){ state.sheet = null; },
@@ -546,31 +567,50 @@ const ACTS = {
     setRemote(state.person, {temp:clamp(cur + +t.dataset.d, 16, 30)}); },
   light(t){ setRemote(state.person, {light:t.dataset.mode, lightSet:true}); },
   nextnight(){ state.day = Math.min(120, state.day + 1); },
-  rsay(t){ rimauSend(t.dataset.t); return 'norender'; },
-  rconsent(t){ rimauConsent(+t.dataset.i, !!t.dataset.yes); return 'norender'; },
-  rclear(){ store.chats[state.person] = []; save(); RIMAU.notice = ''; }
+  rexample(){ RIMAU.example = !RIMAU.example; renderRimau(true); return 'norender'; },
+  rclear(){ store.chats[state.person] = []; save(); RIMAU.error = ''; },
+  aopen(){ assessOpen(false); renderFab(); return 'norender'; },
+  ademo(){ assessAutoPlay(); renderFab(); return 'norender'; },
+  aplay(){ assessAutoPlay(); return 'norender'; },
+  askip(){ ASSESS.fast = true; return 'norender'; },
+  astop(){ ASSESS.auto = false; ASSESS.playId++; const i = $('assess-in'); if(i) i.value = ''; renderAssess(); return 'norender'; },
+  mateopen(t){ POP.pid = t.dataset.pid; renderPop(); return 'norender'; },
+  popclose(){ popClose(); return 'norender'; },
+  popmine(){ POP.pid = null; renderPop(); go('personal'); return 'norender'; },
+  aclose(){ assessClose(); return 'norender'; },
+  astart(){ assessStart(); return 'norender'; },
+  areport(){ assessReport(); return 'norender'; }
 };
 function keepDraft(){ const d = state.draft; if(!d) return; const ta = $('detail'); if(ta) d.detail = ta.value; const r = document.querySelector('input[name=share]:checked'); if(r) d.share = r.value; }
 document.addEventListener('click', e => {
+  if(e.target.id === 'pop'){ popClose(); return; }
   const tab = e.target.closest('#tabs a'); if(tab){ e.preventDefault(); go(tab.dataset.view); return; }
-  const t = e.target.closest('[data-act],[data-scene],[data-person],[data-role],[data-go],[data-profile],[data-rmode]'); if(!t) return;
+  const t = e.target.closest('[data-act],[data-scene],[data-person],[data-role],[data-go],[data-profile]'); if(!t) return;
   if(t.dataset.act){ if(ACTS[t.dataset.act](t) === 'norender') return; }
   else if(t.dataset.scene){ const [d, p] = t.dataset.scene.split('|'); state.day = +d; state.person = p; if(state.session.mode === 'astronaut') state.session.pid = p; state.sheet = null; }
   else if(t.dataset.person){ state.person = t.dataset.person; state.sheet = null; }
   else if(t.dataset.role) state.role = t.dataset.role;
   else if(t.dataset.profile) state.profile = t.dataset.profile;
-  else if(t.dataset.rmode){ RIMAU.mode = t.dataset.rmode; RIMAU.notice = ''; }
   else if(t.dataset.go){ const [v, d, p] = t.dataset.go.split('|'); go(v, d, p); return; }
   render();
 });
-document.addEventListener('submit', e => { if(e.target.id === 'rimau-form'){ e.preventDefault(); const i = $('rimau-in'), v = i.value; i.value = ''; rimauSend(v); } });
+document.addEventListener('submit', e => {
+  if(e.target.id === 'rimau-form'){ e.preventDefault(); const i = $('rimau-in'), v = i.value; i.value = ''; rimauSend(v); }
+  if(e.target.id === 'assess-form'){ e.preventDefault(); const i = $('assess-in'), v = i.value; if(!v.trim() || ASSESS.busy || ASSESS.auto) return; i.value = ''; assessSubmit(v); }
+});
+document.addEventListener('keydown', e => {
+  if(e.target.id === 'assess-in' && e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); $('assess-form').requestSubmit(); }
+  if(e.key === 'Escape' && POP.pid){ popClose(); return; }
+  if(e.key === 'Escape' && ASSESS.open && !ASSESS.busy) assessClose();
+  if((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[role=button][data-act]')){ e.preventDefault(); e.target.click(); }
+});
 document.addEventListener('change', e => {
   if(e.target.id === 'incl'){ state.adraft.include = e.target.checked; render(); }
   if(e.target.id === 'bright'){ setRemote(state.person, {bright:+e.target.value, lightSet:true}); render(); }
 });
 document.addEventListener('input', e => { if(e.target.id === 'bright') $('brightv').textContent = e.target.value; });
 $('day').addEventListener('input', e => { state.day = +e.target.value; state.sheet = null; render(); });
-window.addEventListener('storage', e => { if(e.key === KEY){ load(); clearCaches(); if(state.sheet !== 'rt' && !RIMAU.busy && !RIMAU.typing) render(); } });
+window.addEventListener('storage', e => { if(e.key === KEY){ load(); clearCaches(); if(state.sheet !== 'rt' && !RIMAU.busy && !ASSESS.busy) render(); } });
 
 /* sleep chart hover: crosshair plus a readout of every trace at that time */
 document.addEventListener('pointermove', e => {
@@ -601,7 +641,6 @@ document.addEventListener('pointerdown', e => {
 load();
 /* Deep links for recording takes, e.g. ?as=demo&view=ground&day=64&p=amara&rimau=scripted. A refresh without them returns to sign-in. */
 (() => { const q = new URLSearchParams(location.search), as = q.get('as');
-  if(q.get('rimau') === 'scripted') RIMAU.mode = 'scripted';
   if(q.get('day')) state.day = clamp(+q.get('day') || 20, 2, 120);
   if(q.get('p') && PEOPLE.some(p => p.id === q.get('p'))) state.person = q.get('p');
   if(as && TABS[as]){ state.session = {mode:as, pid:as === 'astronaut' ? state.person : null}; if(VIEWS.includes(q.get('view'))) state.view = q.get('view'); if(q.get('role') === 'surgeon') state.role = 'surgeon'; if(q.get('details')) state.details = true; }
