@@ -1,4 +1,4 @@
-# AstroMind: Rimau, the Crew Wellbeing Copilot
+# AstroMind: the Crew Wellbeing Copilot
 
 A NASA Space Apps Challenge 2026 prototype for monitoring astronaut mental and physical wellbeing on long-duration missions.
 
