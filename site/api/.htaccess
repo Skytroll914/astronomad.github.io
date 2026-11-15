@@ -1,0 +1,4 @@
+# Only the proxy is reachable in this folder; block any config file placed here.
+<Files "config.php">
+  Require all denied
+</Files>

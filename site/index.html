@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Astronaut Health Monitoring System</title>
+<meta name="description" content="Hackathon prototype: astronaut behavioural health, sleep, cabin safety and crew support, with Rimau the AI wellbeing companion.">
+<link rel="icon" href="assets/rimau-still.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/v3.css">
+</head>
+<body>
+<div class="wrap">
+
+<div id="login" hidden></div>
+
+<div id="app" hidden>
+<header style="display:flex;flex-direction:column;gap:12px">
+  <div class="top">
+    <img class="mascot" src="assets/mascot.jpg" alt="" width="56" height="56">
+    <div style="flex:1"><h1>Astronaut Health Monitoring System</h1><p class="sub">Behavioural health, sleep, cabin safety and crew support. Hackathon demo.</p></div>
+    <div class="session"><span id="who-am-i" class="small"></span><button class="btn" data-act="logout">Switch role / Log out</button></div>
+  </div>
+  <div class="simbar" role="note"><span>DEMO</span><span>Crew, cabin and radiation data: simulated</span><span>Alert delivery: simulated</span><span>CCTV: mock</span><span>Rimau: Gemini or scripted</span></div>
+  <nav class="tabs" id="tabs" aria-label="Views"></nav>
+</header>
+
+<details class="panel" id="controls">
+  <summary class="protolab">DEMO CONTROLS · not part of the product</summary>
+  <div class="controls" style="margin-top:10px">
+    <div class="ctl grow">
+      <label for="day">Mission day <span class="daynum" id="daynum"></span> <span class="small">of 120</span></label>
+      <input type="range" id="day" min="2" max="120" value="20">
+      <div class="btnrow" id="scenes"></div>
+    </div>
+    <div class="ctl"><span class="lab" id="proflab">Mission</span><div class="btnrow" role="group" aria-labelledby="proflab" id="prof"></div></div>
+    <div class="ctl" id="whoctl"><span class="lab" id="wholab">Astronaut</span><div class="btnrow" role="group" aria-labelledby="wholab" id="who"></div></div>
+    <div class="ctl"><span class="lab" id="rmodelab">Rimau replies</span><div class="btnrow" role="group" aria-labelledby="rmodelab" id="rmode"></div></div>
+    <div class="ctl"><span class="lab">Stored demo entries</span><button class="btn sm" data-act="reset">Clear reports, alerts, chats and remote</button></div>
+  </div>
+</details>
+
+<div class="view" id="v-personal"><div class="personal"><div id="astro"></div><aside id="rimau" class="rimau" aria-label="Rimau chat"></aside></div></div>
+<div class="view" id="v-team"><div id="teamview" class="stack"></div></div>
+<div class="view" id="v-ground"><div id="groundview" class="stack"></div></div>
+<div class="view" id="v-about"><div id="aboutview" class="stack"></div></div>
+</div>
+
+<footer>Hackathon prototype built on simulated data for the NASA Space Apps Challenge. Not a medical device, and not a NASA product or endorsed by NASA.</footer>
+</div>
+
+<script src="js/pipeline.js"></script>
+<script src="js/rules.js"></script>
+<script src="js/extras.js"></script>
+<script src="js/additions.js"></script>
+<script src="js/rimau.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
