@@ -1,8 +1,8 @@
-# AstroNomad: Rimau, the Crew Wellbeing Copilot
+# AstroMind: Rimau, the Crew Wellbeing Copilot
 
 A NASA Space Apps Challenge 2026 prototype for monitoring astronaut mental and physical wellbeing on long-duration missions.
 
-AstroNomad turns the quiet signals of spaceflight (sleep, heart rhythm, cabin air, radiation and a short daily conversation) into one simple, explainable status for each crew member: **Normal**, **Warning** or **Critical**. Each reading is compared with the astronaut's *own* pre-flight normal, not a population average. Rimau, a tiger-astronaut AI companion, answers questions and runs a daily wellbeing check-in built on established psychological questionnaires.
+AstroMind turns the quiet signals of spaceflight (sleep, heart rhythm, cabin air, radiation and a short daily conversation) into one simple, explainable status for each crew member: **Normal**, **Warning** or **Critical**. Each reading is compared with the astronaut's *own* pre-flight normal, not a population average. Rimau, a tiger-astronaut AI companion, answers questions and runs a daily wellbeing check-in built on established psychological questionnaires.
 
 > All crew data is **simulated** (six fictional crew members over a 120-day mission). This is a hackathon prototype, not a medical device, and not a NASA product or endorsed by NASA.
 

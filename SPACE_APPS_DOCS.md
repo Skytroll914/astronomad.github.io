@@ -1,4 +1,4 @@
-# AstroNomad: Rimau, the Crew Wellbeing Copilot
+# AstroMind: Rimau, the Crew Wellbeing Copilot
 ### NASA Space Apps Challenge 2026 · Project Documentation
 
 > **Challenge:** `[INSERT NASA SPACE APPS 2026 CHALLENGE NAME]`
@@ -8,7 +8,7 @@
 > **Team poster:** `[ATTACH / LINK]`
 
 **Alternative titles** (pick one):
-- *AstroNomad: Mission Control for the Mind*
+- *AstroMind: Mission Control for the Mind*
 - *Rimau: Catching Distress Before It Becomes Danger, From Orbit to Mars*
 
 ---
@@ -27,19 +27,19 @@
 
 ## 1. Project Title & Challenge Selection
 
-**Project name:** **AstroNomad: Rimau, the Crew Wellbeing Copilot**
+**Project name:** **AstroMind: Rimau, the Crew Wellbeing Copilot**
 
 **Challenge:** `[INSERT NASA SPACE APPS 2026 CHALLENGE NAME]`
 
-**One-line pitch:** *AstroNomad turns the quiet signals of spaceflight (sleep, heart rhythm, voice, cabin air and a two-minute conversation) into early, private and explainable warnings, so astronauts get support days before stress becomes a mission risk.*
+**One-line pitch:** *AstroMind turns the quiet signals of spaceflight (sleep, heart rhythm, voice, cabin air and a two-minute conversation) into early, private and explainable warnings, so astronauts get support days before stress becomes a mission risk.*
 
-**Why it matters:** NASA lists behavioural health among the top human risks for long-duration exploration. On the ISS, help is a radio call away. On a Mars transit, with up to 22 minutes of one-way signal delay, the crew must notice and respond to psychological strain largely on their own. Astronauts are also selected for resilience and often under-report distress for fear of losing flight status. AstroNomad is designed for exactly that gap.
+**Why it matters:** NASA lists behavioural health among the top human risks for long-duration exploration. On the ISS, help is a radio call away. On a Mars transit, with up to 22 minutes of one-way signal delay, the crew must notice and respond to psychological strain largely on their own. Astronauts are also selected for resilience and often under-report distress for fear of losing flight status. AstroMind is designed for exactly that gap.
 
 ---
 
 ## 2. High-Level Summary
 
-AstroNomad is a web-based monitoring and support system for astronaut mental and physical wellbeing. It combines **passive sensing** (wearable vitals, sleep, cabin environment, voice features, proximity), **active check-ins** (a short, open-ended daily conversation built on validated psychometric instruments) and **context** (schedule, workload, cabin events). It converts them into one simple, explainable status for each crew member: **Normal**, **Warning** or **Critical**.
+AstroMind is a web-based monitoring and support system for astronaut mental and physical wellbeing. It combines **passive sensing** (wearable vitals, sleep, cabin environment, voice features, proximity), **active check-ins** (a short, open-ended daily conversation built on validated psychometric instruments) and **context** (schedule, workload, cabin events). It converts them into one simple, explainable status for each crew member: **Normal**, **Warning** or **Critical**.
 
 Three role-based experiences share one data model:
 
@@ -322,7 +322,7 @@ final_state = max_severity( TierA(personal_or_predicted_deviation), TierB(clinic
 > Copy each block into Canva or PowerPoint. *Speaker notes* are in italics.
 
 **Slide 1: Title**
-- **AstroNomad: Rimau, the Crew Wellbeing Copilot**
+- **AstroMind: Rimau, the Crew Wellbeing Copilot**
 - Catching distress before it becomes danger, from orbit to Mars
 - `[Team name]` · NASA Space Apps Challenge 2026 · `[Challenge name]`
 - Visual: Rimau the tiger astronaut mascot
@@ -432,7 +432,7 @@ final_state = max_severity( TierA(personal_or_predicted_deviation), TierB(clinic
 - CSA Bio-Monitor (Astroskin) is identified as the target wearable for real-data integration (roadmap). `[ADD CITATION IF USED]`
 - `[ADD JAXA / CSA / other partner datasets if used]`
 
-> **Data disclaimer:** all crew members, readings and events in the prototype are simulated. Published NASA and ESA values are used as reference ranges, not as data about any real astronaut. AstroNomad is a hackathon prototype, not a medical device, and is not a NASA product or endorsed by NASA.
+> **Data disclaimer:** all crew members, readings and events in the prototype are simulated. Published NASA and ESA values are used as reference ranges, not as data about any real astronaut. AstroMind is a hackathon prototype, not a medical device, and is not a NASA product or endorsed by NASA.
 
 ---
 

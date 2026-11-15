@@ -86,7 +86,7 @@ function renderLogin(){
   const crew = state.loginStep === 'crew';
   $('login').innerHTML = `<div class="login">
     <img class="mascot" src="assets/mascot.jpg" alt="Rimau, the team's tiger astronaut mascot" width="120" height="120">
-    <h1>Astronaut Health Monitoring System</h1>
+    <h1>AstroMind</h1>
     <p class="sub">Behavioural health, sleep, cabin safety and crew support. Hackathon demo.</p>
     ${crew ? `<h2 style="margin-top:8px">Which crew member are you?</h2>
       <div class="crewpick">${PEOPLE.map(p => `<button class="pick" data-act="pickcrew" data-pid="${p.id}"><span class="av av-${p.id}">${p.name[0]}</span><strong>${p.name}</strong><span class="small">${p.role}</span></button>`).join('')}</div>
