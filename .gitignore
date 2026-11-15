@@ -12,3 +12,7 @@ gemini-config.php
 
 # Python cache
 __pycache__/
+
+# Original prototype and source GIF (kept locally; the app uses site/ and site/assets/)
+index (1).html
+tiger_astronaut_talking.gif

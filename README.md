@@ -129,7 +129,6 @@ site/                    The web app (publish this folder)
     ui.js                Screens, sign-in, tabs and interactions
   assets/                Rimau mascot images
 SPACE_APPS_DOCS.md       Submission documentation
-index (1).html           The first single-file prototype, kept for reference
 ```
 
 ---
